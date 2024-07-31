@@ -7,16 +7,16 @@ This is a Node.js-based e-commerce API designed to handle the backend operations
 ## Installation
 
 - ##### Prerequisites
-- [Node.js](https://nodejs.org/) (v14.x or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- [MongoDB](https://www.mongodb.com/) (local instance or MongoDB Atlas)
+  - [Node.js](https://nodejs.org/) (v14.x or higher)
+  - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+  - [MongoDB](https://www.mongodb.com/) (local instance or MongoDB Atlas)
 
 - ##### Clone the Repository
 
-```bash
-git clone https://github.com/yourusername/e-commerce-api.git
-cd e-commerce-api
-```
+  ```bash
+  git clone https://github.com/yourusername/e-commerce-api.git
+  cd e-commerce-api
+  ```
 
 - Install Dependencies
 
