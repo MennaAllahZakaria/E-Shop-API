@@ -14,8 +14,8 @@ This is a Node.js-based e-commerce API designed to handle the backend operations
 - ##### Clone the Repository
 
   ```bash
-  git clone https://github.com/yourusername/e-commerce-api.git
-  cd e-commerce-api
+  git clone https://github.com/MennaAllahZakaria/E-Shop-API.git
+  cd E-Shop-API
   ```
 
 - Install Dependencies
