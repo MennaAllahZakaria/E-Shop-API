@@ -12,7 +12,6 @@ const {
 const {
     createCategory,
     uploadCategoryImage,
-    resizeImage,
     getCategories,
     getCategory,
     updateCategory,
@@ -34,7 +33,6 @@ router.route('/')
                     protect,
                     allowedTo("admin","manager"),
                     uploadCategoryImage,
-                    resizeImage,
                     createCategoryValidator
                     ,createCategory
                 );
@@ -45,7 +43,6 @@ router.route('/:id')
                         protect,
                         allowedTo("admin","manager"),
                         uploadCategoryImage,
-                        resizeImage,
                         updateCategoryValidator,
                         updateCategory
                     )
