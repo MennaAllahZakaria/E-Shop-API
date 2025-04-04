@@ -7,7 +7,7 @@ const sendEmail=require("../utils/sendEmail")
 
 const User = require('../models/userModel');
 const createToken=require('../utils/createToken');
-
+const {sanitizeUser}=require('../utils/sanitizeData');
 
 
 // @desc    Signup
@@ -22,7 +22,7 @@ exports.signup = asyncHandler(async (req, res, next) => {
 
     const token = createToken(user._id);
 
-    res.status(201).json({ data: user, token });
+    res.status(201).json({ data: sanitizeUser(user), token });
 });
 
 // @desc    Login
@@ -38,7 +38,7 @@ exports.login = asyncHandler(async(req, res, next)=>{
 
     const token=createToken(user._id);
 
-    res.status(200).json({data:user,token});
+    res.status(200).json({data:sanitizeUser(user),token});
 });
 
 // @desc    Make sure the user is logged in 
