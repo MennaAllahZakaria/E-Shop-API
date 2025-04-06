@@ -9,30 +9,24 @@ const handlerFactory=require("./handlerFactory");
 const {uploadSingleImage}=require("../middlewares/uploadImageMiddleware");
 
 
-
-
-exports.resizeImage=asyncHandler(async (req, res, next) => { 
-    const filename = `brand-${uuidv4()}-${Date.now()}.jpeg`;
-
-    await sharp(req.file.buffer)
-        .resize(600, 600)
-        .toFormat('jpeg')
-        .jpeg({ quality: 95 }) //to decreae size
-        .toFile(`uploads/brands/${filename}`);
-
-    // Save image into our db
-    req.body.image = filename;
-
-    next();
-    });
-
 exports.uploadBrandImage=uploadSingleImage('image');
 
 
 // @desc    Create brand
 // @route   POST  /api/v1/brands
 // @access  Private/admin-manager
-exports.createBrand=handlerFactory.createOne(Brand)
+exports.createBrand=asyncHandler(async(req, res, next)=>{
+    const imageUrl = req.files?.image ? req.files.image[0].path : null;
+    req.body.image = imageUrl;
+    const brand = await Brand.create(req.body);
+    if ( !brand){
+        return next(new Error("Failed to create brand"));
+    }
+    res.status(201).json({
+        success: true,
+        data: brand
+    });
+})
 
 // @desc    Get specific brand by id
 // @route   GET /api/v1/brands/:id
@@ -47,7 +41,21 @@ exports.getBrands = handlerFactory.getAll(Brand);
 // @desc    Update specific brand
 // @route   PUT /api/v1/brands/:id
 // @access  Private/admin-manager
-exports.updateBrand = handlerFactory.updateOne(Brand);
+exports.updateBrand = asyncHandler(async(req,res,next)=>{
+    if (req.files?.image) {
+        req.body.image = req.files.image[0].path;
+    }
+    const updatedBrand = await Brand.findByIdAndUpdate(req.params.id,req.body,{
+        new:true
+    });
+    if (!updatedBrand){
+        return next(new Error("Failed to update brand"));
+    }
+    res.status(200).json({
+        success: true,
+        data: updatedBrand
+    });
+})
 
 
 // @desc    Delete specific brand

@@ -1,34 +1,34 @@
-const express=require('express');
-
-const router=express.Router();
-const {
-    signupValidator,
-    loginValidator
-
-}=require("../utils/validators/authValidator")
-
+const express = require("express");
 const {
     signup,
+    verifyEmailUser,
+    protectforget,
+    protectCode,
     login,
-    forgotPassword,
+    forgetPassword,
     verifyPassResetCode,
-    resetPassword
-    
-}=require("../services/authService");
+    resetPassword,
+} = require("../services/authService");
 
+const {
+    signupUserValidator,
+    loginValidator,
+    resetValidator,
+} = require("../utils/validators/authValidator");
 
-router.post('/signup',
-                    signupValidator,
-                    signup
-                );
+const router = express.Router();
 
-router.post('/login',
-                    loginValidator,
-                    login
-                );
+router.post(
+    "/signup",
+    signupUserValidator,
+    signup
+);
+router.post("/verifyEmailUser", protectCode, verifyEmailUser);
 
-router.post('/forgotPassword',forgotPassword);   
-router.post('/verifyResetCode',verifyPassResetCode)
-router.put("/resetPassword",resetPassword)
+router.post("/login", loginValidator, login);
 
-module.exports=router;
+router.post("/forgetpass", forgetPassword);
+router.post("/verifycode", protectforget, verifyPassResetCode);
+router.put("/resetpassword", protectforget, resetValidator, resetPassword);
+
+module.exports = router;

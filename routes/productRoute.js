@@ -15,8 +15,7 @@ const {
     getProducts,
     updateProduct,
     deleteProduct,
-    uploadProductImages,
-    resizeProductImages
+    uploadProductImages
 }=require("../services/productService");
 
 const{
@@ -41,7 +40,6 @@ router.route('/')
                     protect,
                     allowedTo("admin","manager"),
                     uploadProductImages,
-                    resizeProductImages,
                     createProductValidator,
                     createProduct
                 );
@@ -52,7 +50,6 @@ router.route('/:id')
                         protect,
                         allowedTo("admin","manager"),
                         uploadProductImages,
-                        resizeProductImages,
                         updateProductValidator,
                         updateProduct
                     )

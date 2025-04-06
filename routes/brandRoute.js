@@ -12,7 +12,6 @@ const {
 const {
     createBrand,
     uploadBrandImage,
-    resizeImage,
     getBrand,
     getBrands,
     updateBrand,
@@ -29,7 +28,6 @@ router.route('/')
                     protect,
                     allowedTo("admin","manager"),
                     uploadBrandImage,
-                    resizeImage,
                     createBrandValidator,
                     createBrand
                 );
@@ -40,7 +38,6 @@ router.route('/:id')
                         protect,
                         allowedTo("admin","manager"),
                         uploadBrandImage,
-                        resizeImage,
                         updateBrandValidator,
                         updateBrand
                     )

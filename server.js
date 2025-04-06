@@ -12,7 +12,6 @@ const morgan=require("morgan");
 const rateLimit=require('express-rate-limit');
 const hpp=require('hpp')
 const mongoSanitize=require('express-mongo-sanitize');
-const xss= require('xss-clean');
 
 dotenv.config({path:"config.env"});
 
@@ -33,7 +32,6 @@ app.options('*',cors());
 //compression -> compress all responses
 app.use(compression());
 
-app.post ('/webhook-checkout',express.row({type:'application/json'}),webhookCheckout)
 
 // connect to DB
 dbConnection();
@@ -44,8 +42,7 @@ app.use(express.json({limit:'20kb'}));
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 //To apply data sanitization
-app,use(mongoSanitize());
-app.use(xss());
+app.use(mongoSanitize());
 
 //middleware to protect against HTTP Parameter Pollution attacks
 app.use(hpp({whitelist:[
