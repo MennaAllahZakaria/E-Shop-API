@@ -8,6 +8,16 @@ const validatorMiddleware=require("../../middlewares/validatorMiddleware");
 
 const User =require("../../models/userModel");
 
+exports.idUserValidator = [
+    check("id")
+                .notEmpty()
+                .withMessage("User ID is required")
+                .isMongoId()
+                .withMessage("User ID is not valid")
+    , validatorMiddleware
+
+];
+
 exports.createUserValidator=[
     check('name')
         .notEmpty().withMessage('User name is required')

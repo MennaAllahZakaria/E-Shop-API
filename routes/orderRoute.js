@@ -9,8 +9,6 @@ const {
     getOrders,
     updateOrderToPaid,
     updateOrderToDelivered,
-    checkoutSession,
-    webhookCheckout
 
 
 }=require("../services/orderService");
@@ -58,17 +56,5 @@ router.put('/:id/delivered',
 );                       
 
 
-router.get('/checkout-session/:cartId',
-                        protect,
-                        allowedTo("user"),
-                        checkoutSession
-);
-
-router.post('/webhook-checkout',
-                        protect,
-                        allowedTo("user"),
-                        webhookCheckout
-
-)
                     
 module.exports=router;
