@@ -19,13 +19,19 @@ exports.idUserValidator = [
 ];
 
 exports.createUserValidator=[
-    check('name')
-        .notEmpty().withMessage('User name is required')
-        .isLength({min:3}).withMessage('Too short User name ')
-        .custom((val,{req})=>{
-            req.body.slug=slugify(val);
-            return true;
-        }),
+    check("firstName")
+                        .optional()
+                        .isLength({ min: 3 })
+                        .withMessage("firstname must be at least 3 characters long")
+                        .matches(/^[a-zA-Z]+$/)
+                        .withMessage("firstname should only contain English letters"),
+    
+        check("lastName")
+                        .optional()
+                        .isLength({ min: 3 })
+                        .withMessage("lastname must be at least 3 characters long")
+                        .matches(/^[a-zA-Z]+$/)
+                        .withMessage("lastname should only contain English letters"),
         check('email')
         .notEmpty().withMessage('Email required')
         .isEmail().withMessage('Invalid email address')

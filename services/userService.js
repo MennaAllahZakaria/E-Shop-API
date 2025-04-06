@@ -1,179 +1,160 @@
-/* eslint-disable import/no-extraneous-dependencies */
-//CRUD operations of Categories
-const sharp= require('sharp')
-const {v4:uuidv4}= require('uuid')
-const bcrypt= require('bcryptjs')
+const asyncHandler = require("express-async-handler");
 
+const ApiError = require("../utils/ApiError");
 
-const asyncHandler=require("express-async-handler");
-const User = require('../models/userModel');
-const handlerFactory=require("./handlerFactory");
-const {uploadSingleImage}=require("../middlewares/uploadImageMiddleware");
-const ApiError = require("../utils/ApiError")
+const User = require("../models/userModel");
 
-const createToken=require('../utils/createToken');
+const { sanitizeUser, sanitizeUsers } = require("../utils/sanitizeData");
 
+const HandlerFactory = require("./handlerFactory");
 
-exports.resizeImage = asyncHandler(async (req, res, next) => { //image processing to best preofrmance (buffer need memory storage not disckstorage)
-    const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
-    if ( req.file){
-    await sharp(req.file.buffer)//sharp library image processing for nodejs   sharp is a promise need a awit
-        .resize(600, 600)
-        .toFormat('jpeg')
-        .jpeg({ quality: 95 }) //to decreae size
-        .toFile(`uploads/users/${filename}`);
-
-    // Save image into our db
-    req.body.profileImage = filename;
-    }
-    next();
-    });
-
-
-exports.uploadUserImage=uploadSingleImage("profileImage");
-
-
-// @desc    Create user
-// @route   POST  /api/v1/users
-// @access  Private
-exports.createUser=handlerFactory.createOne(User);
-
-
-// @desc    Get specific User by id
-// @route   GET /api/v1/users/:id
+// @desc    Get user by ID
+// @route   GET /users/:id
 // @access  Private/admin
-exports.getUser =handlerFactory.getOne(User);
 
-// @desc    Get list of users
-// @route   GET /api/v1/users
-// @access  Private/admin
-exports.getUsers = handlerFactory.getAll(User);
+exports.getUser = HandlerFactory.getOne(User);
 
-// @desc    Update specific User
-// @route   PUT /api/v1/users/:id
-// @access  Private/admin
-exports.updateUser =asyncHandler(async (req, res, next) => {
-    const user = await User.findByIdAndUpdate(req.params.id,
-        {
-            name: req.body.name,
-            slug: req.body.slug,
-            email: req.body.email,
-            phone: req.body.phone,
-            profileImage:req.body.profileImage,
-            role:req.body.role,
-    }
-    , {
-        new: true,
-    });
-
-    if (!user) {
-        return next(
-        new ApiError(`No user for this id ${req.params.id}`, 404)
-        );
-    }
-    res.status(200).json({ data: user });
-})
-// @desc    Change user password
-// @route   DELETE /api/v1/users/changePassword/:id
+// @desc    Get information of logged user
+// @route   GET /users/getMe
 // @access  Private/user
 
-exports.changeUserPassword = asyncHandler(async (req, res, next) => {
-    const user = await User.findByIdAndUpdate(req.params.id,
-        {
-            password:await bcrypt.hash(req.body.password,process.env.SALT),
-            passwordChangedAt:Date.now()
-    
-        }
-    ,   {
-        new: true,
-    });
-
-    if (!user) {
-        return next(
-        new ApiError(`No user for this id ${req.params.id}`, 404)
-        );
-    }
-    res.status(200).json({ data: user });
-});
-
-// @desc    Delete specific User
-// @route   DELETE /api/v1/users/:id
-// @access  Private/admin
-exports.deleteUser =handlerFactory.deleteOne(User);
-
-
-// Logged user 
-
-
-// @desc    Get logged user data
-// @route   GET /api/v1/users/getMe
-// @access  Private/protect
-
 exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
-    req.params.id = req.user._id;
-    next();
+  const user = await User.findById(req.user.id);
 
-    });
+  if (!user) {
+    return next(new ApiError(`No user found with id ${req.user.id}`, 404));
+  }
 
-// @desc    Update user password
-// @route   PUT /api/v1/users/updateMyPassword
-// @access  Private/protect
-
-
-exports.updateLoggedUserPassword=asyncHandler(async(req,res,next)=>{
-    const user=await User.findByIdAndUpdate(
-        req.user._id,{
-            password:await bcrypt.hash(req.body.password,process.env.SALT),
-            passwordChangedAt:Date.now(),
-        },
-        {
-            new:true,
-        }
-    );
-
-
-    const token = createToken(user._id) 
-    res.status(200).json({data:user,token});
+  res.status(200).json({ data: sanitizeUser(user) });
 });
 
+// @desc    Get all users
+// @route   GET /users/all
+// @access  Private/user
 
-// @desc    Update logged user data without [password,role]
-// @route   PUT /api/v1/users/updateMe
-// @access  Private/protect
-
-exports.updateLoggedUserData=asyncHandler(async(req,res,next)=>{
-    const updatedUser=await User.findByIdAndUpdate(
-        req.user._id,{
-            name:req.body.name,
-            email:req.body.email,
-            phone:req.body.phone,
-            profileImage:req.body.profileImage,
-        },
-        {
-            new:true,
-        }
-    );
-
-    res.status(200).json({data:updatedUser});
-
+exports.getAllUsers = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  if (!users.length) {
+    return next(new ApiError(`No users found`, 404));
+  }
+  res.status(200).json({ results: users.length, data: sanitizeUsers(users) });
 });
 
+// @desc    Update user without password or role
+// @route   PUT /users/updateMe
+// @access  Private/user
 
-// @desc    Deactvate logged user 
-// @route   PUT /api/v1/users/deleteMe
-// @access  Private/protect
+exports.updateUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+    },
+    {
+      new: true,
+    }
+  );
 
-exports.deleteLoggedUserData=asyncHandler(async(req,res,next)=>{
-    await User.findByIdAndUpdate(
-        req.user._id,{
-            active:false,
-        },
-        {
-            new:true,
-        }
-    );
-
-    res.status(204).json({msg:"Success"});
-
+  if (!user) {
+    return next(new ApiError(`No user for this id ${req.user.id}`, 404));
+  }
+  res.status(200).json({ data: sanitizeUser(user) });
 });
 
+// @desc    Update user  role
+// @route   PUT /users/updateRole/:id
+// @access  Private/admin
+
+exports.updateUserRole = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new ApiError(`No user for this id ${req.params.id}`, 404));
+  }
+
+  const newRole = user.role === "admin" ? "user" : "admin";
+  await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      role: newRole,
+    },
+    {
+      new: true,
+    }
+  );
+
+  res.status(204).json({ msg: "Role updated" });
+});
+
+// @desc    Deactvate logged user
+// @route   PUT /users/deactvateMe
+// @access  Private/protect
+
+exports.deactvateLoggedUser = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      active: false,
+    },
+    {
+      new: true,
+    }
+  );
+
+  res.status(204).json({ msg: "Deactivated" });
+});
+
+// @desc    Reactivate a user
+// @route   PUT /users/reactivate/:id
+// @access  Private/admin
+exports.reactivateUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new ApiError(`No user found with id ${req.params.id}`, 404));
+  }
+
+  await User.findByIdAndUpdate(req.params.id, { active: true }, { new: true });
+
+  res.status(200).json({ msg: "User reactivated" });
+});
+
+// @desc    Get all deactivated users
+// @route   GET /users/deactivated
+// @access  Private/admin
+exports.getDeactivatedUsers = asyncHandler(async (req, res, next) => {
+  const users = await User.find({ active: false });
+  if (!users.length) {
+    return next(new ApiError(`No deactivated users found`, 404));
+  }
+  res.status(200).json({ results: users.length, data: sanitizeUsers(users) });
+});
+
+// @desc    Delete logged user
+// @route   DELETE /users/deleteMyAccount
+// @access  Private/protect
+
+exports.deleteLoggedUser = asyncHandler(async (req, res, next) => {
+  await Baby.deleteMany({ motherOfBaby: req.user._id });
+  await User.findByIdAndDelete(req.user._id);
+
+  res.status(204).json({ msg: "Deleted" });
+});
+
+// @desc    Search users
+// @route   GET /users/search
+// @access  Private/user
+exports.searchUsers = asyncHandler(async (req, res, next) => {
+  const { query } = req.query;
+  const users = await User.find({
+    $or: [
+      { firstName: { $regex: query, $options: "i" } },
+      { lastName: { $regex: query, $options: "i" } },
+      { email: { $regex: query, $options: "i" } },
+    ],
+  });
+
+  if (!users.length) {
+    return next(new ApiError(`No users found matching ${query}`, 404));
+  }
+  res.status(200).json({ data: sanitizeUsers(users) });
+});

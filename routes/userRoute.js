@@ -1,80 +1,45 @@
-const express=require('express');
-
-const router=express.Router();
-const {
-    createUserValidator,
-    getUserValidator,
-    updateUserValidator,
-    changeUserPasswordValidator,
-    deleteUserValidator,
-    updateLoggedUserValidator
-
-}=require("../utils/validators/userValidator")
-
+const express = require("express");
 
 const {
-    createUser,
     getUser,
-    getUsers,
-    updateUser,
-    changeUserPassword,
-    deleteUser,
-    uploadUserImage,
-    resizeImage,
     getLoggedUserData,
-    updateLoggedUserPassword,
-    updateLoggedUserData,
-    deleteLoggedUserData
-    
-}=require("../services/userService");
+    getAllUsers,
+    updateUser,
+    updateUserRole,
+    deactvateLoggedUser,
+    reactivateUser,
+    getDeactivatedUsers,
+    deleteLoggedUser,
+    searchUsers,
+} = require("../services/userService");
 
-const{
-    protect,
-    allowedTo
-}=require("../services/authService");
+const {
+    idUserValidator,
+    updateUserValidator,
+} = require("../utils/validators/userValidator");
+
+const { protect, allowedTo } = require("../services/authService");
+const router = express.Router();
 
 router.use(protect);
 
-router.get('/getMe',getLoggedUserData,getUser);
-router.put('/changeMyPassword', updateLoggedUserPassword);
-router.put('/updateMe',updateLoggedUserValidator, updateLoggedUserData);
-router.delete('/deleteMe',deleteLoggedUserData);
+router.get("/getMe", getLoggedUserData);
 
-router.use(allowedTo('admin','manager'));
-router.put('/changePassword/:id',
-            changeUserPasswordValidator,
-            changeUserPassword
-        );
+router.put("/updateMe", updateUserValidator, updateUser);
 
+router.put("/deactivateMe", deactvateLoggedUser);
 
-router.route('/')
-                .get(
-                    getUsers
-                )
-                .post(
-                    uploadUserImage,
-                    resizeImage,
-                    createUserValidator,
-                    createUser
-                );
+router.delete("/deleteMe", deleteLoggedUser);
 
-router.route('/:id')
-                    .get(
-                        getUserValidator,
-                        getUser
-                    )
-                    .put(
-                        uploadUserImage,
-                        resizeImage,
-                        updateUserValidator,
-                        updateUser
-                    )
-                    .delete(
-                        deleteUserValidator,
-                        deleteUser
-                    );
-                    
+router.get("/search", searchUsers);
 
+//-------------------only for admin ---------------------
+router.use(allowedTo("admin"));
 
+router.put("/updateRole/:id", idUserValidator, updateUserRole);
+router.put("/reactivate/:id", idUserValidator, reactivateUser);
+router.get("/deactivated", getDeactivatedUsers);
+router.get("/all", getAllUsers);
+router.get("/:id", idUserValidator, getUser);
 
-module.exports=router;
+module.exports = router;
