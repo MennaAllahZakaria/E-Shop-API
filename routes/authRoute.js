@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+    uploadProfileImage,
     signup,
     verifyEmailUser,
     protectforget,
@@ -21,6 +22,7 @@ const router = express.Router();
 router.post(
     "/signup",
     signupUserValidator,
+    uploadProfileImage,
     signup
 );
 router.post("/verifyEmailUser", protectCode, verifyEmailUser);

@@ -11,6 +11,11 @@ const createToken = require("../utils/createToken");
 const Verification = require("../models/codeModel");
 const User = require("../models/userModel");
 const { sanitizeUser } = require("../utils/sanitizeData");
+const {uploadSingleImage}= require("../middlewares/uploadImageMiddleware")
+
+
+exports.uploadProfileImage=uploadSingleImage('profileImage');
+
 
 exports.signup = asyncHandler(async (req, res, next) => {
   const check = await Verification.findOne({
@@ -42,6 +47,9 @@ exports.signup = asyncHandler(async (req, res, next) => {
       subject: "Email Verification Code (valid for 10 min)",
       message,
     });
+    const imageUrl = req.files?.image ? req.files.image[0].path : null;
+    req.body.profileImage = imageUrl;
+
     const { passwordConfirm, password, ...tempUserData } = req.body;
     //comment
     // تحقق إذا كانت كلمة المرور موجودة ثم عمل هاش لها
